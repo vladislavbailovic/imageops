@@ -10,7 +10,56 @@ import (
 )
 
 func main() {
-	extractPaletteAndRecolorize()
+	// extractPaletteAndRecolorize()
+	pixelateAndRecolorize()
+}
+
+func pixelateAndRecolorize() {
+	fname := "testdata/sample2.png"
+	fp, err := os.Open(fname)
+	if err != nil {
+		log.Fatalf("Unable to open %s: %v", fname, err)
+	}
+	defer fp.Close()
+
+	img, err := png.Decode(fp)
+	if err != nil {
+		log.Fatalf("Unable to decode image: %v", err)
+	}
+
+	outFname := "simplified.png"
+	outf, err := os.Create(outFname)
+	if err != nil {
+		log.Fatalf("Could not create %s: %v", outFname, err)
+	}
+	defer outf.Close()
+
+	tmp := Pixelate(img, 25)
+	size := tmp.Bounds()
+	out := image.NewNRGBA(size)
+	palette := color.Palette{
+		color.RGBA{R: 255, G: 0, B: 0, A: 255},
+		color.RGBA{R: 0, G: 255, B: 0, A: 255},
+		color.RGBA{R: 0, G: 0, B: 255, A: 255},
+		color.RGBA{R: 255, G: 255, B: 255, A: 255},
+		color.RGBA{R: 0, G: 0, B: 0, A: 255},
+	}
+
+	width := size.Max.X - size.Min.X
+	height := size.Max.Y - size.Min.Y
+	for i := 0; i < width*height; i++ {
+		y := i / width
+		x := i % width
+		point := tmp.At(x, y)
+		idx := Closest(point, palette)
+		if idx >= 0 {
+			closest := palette[idx]
+			draw.Draw(out, image.Rect(x, y, x+1, y+1),
+				&image.Uniform{closest}, image.ZP, draw.Src)
+		}
+	}
+
+	png.Encode(outf, out)
 }
 
 func extractPaletteAndRecolorize() {
