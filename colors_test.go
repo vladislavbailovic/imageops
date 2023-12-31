@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-var Red color.Color = color.RGBA{R: 255, G: 0, B: 0, A: 255}
-var Green color.Color = color.RGBA{R: 0, G: 255, B: 0, A: 255}
-var Blue color.Color = color.RGBA{R: 0, G: 0, B: 255, A: 255}
-var Black color.Color = color.RGBA{R: 0, G: 0, B: 0, A: 255}
-var White color.Color = color.RGBA{R: 255, G: 255, B: 255, A: 255}
-
 func Test_Distance(t *testing.T) {
 	want := Distance(White, Black)
 	got := Distance(Black, White)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -11,7 +12,25 @@ import (
 
 func main() {
 	// extractPaletteAndRecolorize()
-	pixelateAndRecolorize()
+	// pixelateAndRecolorize()
+	pixelateAndAsciify()
+}
+
+func pixelateAndAsciify() {
+	fname := "testdata/sample2.png"
+	fp, err := os.Open(fname)
+	if err != nil {
+		log.Fatalf("Unable to open %s: %v", fname, err)
+	}
+	defer fp.Close()
+
+	img, err := png.Decode(fp)
+	if err != nil {
+		log.Fatalf("Unable to decode image: %v", err)
+	}
+
+	ascii := Asciify(img, 10)
+	fmt.Printf("%s\n\n", ascii)
 }
 
 func pixelateAndRecolorize() {
