@@ -17,7 +17,7 @@ func main() {
 }
 
 func pixelateAndAsciify() {
-	fname := "testdata/sample2.png"
+	fname := "testdata/sample3.png"
 	fp, err := os.Open(fname)
 	if err != nil {
 		log.Fatalf("Unable to open %s: %v", fname, err)
@@ -29,7 +29,7 @@ func pixelateAndAsciify() {
 		log.Fatalf("Unable to decode image: %v", err)
 	}
 
-	ascii := Asciify(img, 10)
+	ascii := AsciifyHtml(img, 15)
 	fmt.Printf("%s\n\n", ascii)
 }
 

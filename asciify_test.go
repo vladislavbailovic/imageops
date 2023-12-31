@@ -20,5 +20,28 @@ func Test_Intensity(t *testing.T) {
 			}
 		})
 	}
+}
 
+func Test_colorToHexString(t *testing.T) {
+	suite := map[string]color.Color{
+		"#ffff0bff": color.RGBA{
+			R: 255,
+			G: 255,
+			B: 11,
+			A: 255,
+		},
+		"#ff0000ff": Red,
+		"#00ff00ff": Green,
+		"#0000ffff": Blue,
+		"#000000ff": Black,
+		"#ffffffff": White,
+	}
+	for want, test := range suite {
+		t.Run(want, func(t *testing.T) {
+			got := colorToHexString(test)
+			if want != got {
+				t.Errorf("want %s, got %s", want, got)
+			}
+		})
+	}
 }

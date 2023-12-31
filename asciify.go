@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -80,8 +81,39 @@ func Intensity(c color.Color) uint8 {
 	return uint8(amount*10) * 10
 }
 
+type AsciiStringifier func(color.Palette, AsciiPalette) string
+
+func AsciifyPlain(src image.Image, tileSize int) string {
+	consolify := func(p color.Palette, a AsciiPalette) string {
+		c := Average(p)
+		i := Intensity(c)
+		return a[i]
+	}
+	return AsciifyWith(src, tileSize, consolify)
+}
+
+func colorToHexString(c color.Color) string {
+	r, g, b, a := c.RGBA()
+	res := 0 |
+		((r & 0xff) << 24) |
+		((g & 0xff) << 16) |
+		((b & 0xff) << 8) |
+		(a & 0xff)
+	return fmt.Sprintf("#%08x", res)
+}
+
+func AsciifyHtml(src image.Image, tileSize int) string {
+	htmlify := func(p color.Palette, _ AsciiPalette) string {
+		c := Average(p)
+		return fmt.Sprintf("<span style='background: %s'> </span>",
+			colorToHexString(c))
+	}
+	return "<pre>" +
+		AsciifyWith(src, tileSize, htmlify) + "</pre>"
+}
+
 // TODO: very similar to Pixelate
-func Asciify(src image.Image, tileSize int) string {
+func AsciifyWith(src image.Image, tileSize int, stringify AsciiStringifier) string {
 	size := src.Bounds()
 	width := size.Max.X - size.Min.X
 	height := size.Max.Y - size.Min.Y
@@ -99,11 +131,7 @@ func Asciify(src image.Image, tileSize int) string {
 					palette = append(palette, current)
 				}
 			}
-			color := Average(palette)
-			// Asciify color, step 1: map to shade intensity
-			intensity := Intensity(color)
-			// Asciify color, step 2: map shade to character
-			out += ascii[intensity]
+			out += stringify(palette, ascii)
 		}
 		out += "\n"
 	}
