@@ -46,7 +46,7 @@ func HtmlifyText() AsciiStringifier {
 		i := Intensity(c)
 		x := ascii[i]
 		return fmt.Sprintf("<span style='color: %s'>%x</span>",
-			colorToHexString(c), x)
+			ToHexString(c), x)
 	}
 }
 
@@ -59,8 +59,8 @@ func HtmlifyBgText() AsciiStringifier {
 		x := ascii[i]
 		return fmt.Sprintf(
 			"<span style='background: %s;color: %s'>%x</span>",
-			colorToHexString(c),
-			colorToHexString(r), x)
+			ToHexString(c),
+			ToHexString(r), x)
 	}
 }
 
@@ -69,7 +69,7 @@ func HtmlifyBg() AsciiStringifier {
 		c := Average(p)
 		return fmt.Sprintf(
 			"<span style='background: %s'> </span>",
-			colorToHexString(c))
+			ToHexString(c))
 	}
 }
 
@@ -98,18 +98,8 @@ func AsciifyWith(src image.Image, tileSize int,
 	return out
 }
 
-func colorToHexString(c color.Color) string {
-	r, g, b, a := c.RGBA()
-	res := 0 |
-		((r & 0xff) << 24) |
-		((g & 0xff) << 16) |
-		((b & 0xff) << 8) |
-		(a & 0xff)
-	return fmt.Sprintf("#%08x", res)
-}
-
 func getAsciiPalette() AsciiPalette {
-	point := fixed.Point26_6{fixed.I(7), fixed.I(13)}
+	point := fixed.P(7, 13)
 	bounds := image.Rect(0, 0, 28, 28)
 
 	minimum := math.MaxInt

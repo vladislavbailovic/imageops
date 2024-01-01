@@ -2,12 +2,51 @@ package main
 
 import (
 	"image/color"
+	"math"
 	"math/rand"
 	"time"
 )
 
 const RecenteringAttempts int = 10
 const MaxAttempts int = 250
+
+func Closest(point color.Color, palette color.Palette) int {
+	which := -1
+	maxDistance := int64(math.MaxInt64)
+	for i, mean := range palette {
+		dist := Distance(point, mean)
+		if dist < maxDistance {
+			which = i
+			maxDistance = dist
+		}
+	}
+	return which
+}
+
+func Average(cluster color.Palette) color.Color {
+	sumR := 0
+	sumG := 0
+	sumB := 0
+	for _, point := range cluster {
+		r, g, b, _ := point.RGBA()
+		sumR += int(r)
+		sumG += int(g)
+		sumB += int(b)
+	}
+	amount := len(cluster)
+	dR := (float64(sumR/amount) / float64(math.MaxUint16)) *
+		math.MaxUint8
+	dG := (float64(sumG/amount) / float64(math.MaxUint16)) *
+		math.MaxUint8
+	dB := (float64(sumB/amount) / float64(math.MaxUint16)) *
+		math.MaxUint8
+	return color.RGBA{
+		R: uint8(dR),
+		G: uint8(dG),
+		B: uint8(dB),
+		A: 255,
+	}
+}
 
 func Extract(samples []color.Color, K int) color.Palette {
 	rand.Seed(time.Now().UnixNano())
