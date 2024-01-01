@@ -3,6 +3,7 @@ package main
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"math"
 	"math/rand"
 	"time"
@@ -54,6 +55,29 @@ func Average(cluster color.Palette) color.Color {
 		B: uint8(dB),
 		A: 255,
 	}
+}
+
+/// Recolor the image with closest matches found
+/// in the provided palette
+func Recolor(img image.Image, plt color.Palette) image.Image {
+	size := img.Bounds()
+	out := image.NewNRGBA(size)
+
+	width := size.Max.X - size.Min.X
+	height := size.Max.Y - size.Min.Y
+	for i := 0; i < width*height; i++ {
+		y := i / width
+		x := i % width
+		point := img.At(x, y)
+		idx := Closest(point, plt)
+		if idx >= 0 {
+			closest := plt[idx]
+			draw.Draw(out, image.Rect(x, y, x+1, y+1),
+				&image.Uniform{closest}, image.ZP, draw.Src)
+		}
+	}
+
+	return out
 }
 
 func ExtractFrom(img image.Image, K int) color.Palette {
