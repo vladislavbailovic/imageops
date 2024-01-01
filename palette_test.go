@@ -34,3 +34,30 @@ func Test_Closest(t *testing.T) {
 		})
 	}
 }
+
+func Test_Extract(t *testing.T) {
+	test := []color.Color{
+		Red, Red, Red,
+		Green, Green,
+		Blue,
+	}
+	palette := Extract(test, 3)
+	if len(palette) != 3 {
+		t.Errorf("expected 3 color palette, got %d",
+			len(palette))
+	}
+
+	for _, val := range test {
+		hasColor := false
+		for _, c := range palette {
+			if c == val {
+				hasColor = true
+				break
+			}
+		}
+		if !hasColor {
+			t.Errorf("did not find %v in palette %v",
+				val, palette)
+		}
+	}
+}

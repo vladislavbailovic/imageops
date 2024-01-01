@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-const RecenteringAttempts int = 10
-const MaxAttempts int = 250
+const ConvergeanceAttempts int = 10
+const MaxRecenteringAttempts int = 250
 
 func Closest(point color.Color, palette color.Palette) int {
 	which := -1
@@ -63,8 +63,8 @@ func Extract(samples []color.Color, K int) color.Palette {
 			make(color.Palette, 0, len(samples)))
 	}
 
-	totalIter := 0
-	for iter := 0; iter < RecenteringAttempts; iter++ {
+	recenterAttempt := 0
+	for convergeanceAttempt := 0; convergeanceAttempt < ConvergeanceAttempts; convergeanceAttempt++ {
 		// Null out clusters
 		for i := 0; i < K; i++ {
 			clusters[i] = make(color.Palette, 0, len(samples))
@@ -95,10 +95,10 @@ func Extract(samples []color.Color, K int) color.Palette {
 		}
 
 		if hasMissingCentroid {
-			iter -= 1
+			convergeanceAttempt -= 1
 		}
-		totalIter += 1
-		if totalIter >= MaxAttempts {
+		recenterAttempt += 1
+		if recenterAttempt >= MaxRecenteringAttempts {
 			break
 		}
 	}
