@@ -21,6 +21,22 @@ func RandomColor() color.Color {
 	}
 }
 
+func Inverse(src color.Color) color.Color {
+	r, g, b, _ := src.RGBA()
+	dR := (float64(r) / float64(math.MaxUint16)) *
+		math.MaxUint8
+	dG := (float64(g) / float64(math.MaxUint16)) *
+		math.MaxUint8
+	dB := (float64(b) / float64(math.MaxUint16)) *
+		math.MaxUint8
+	return color.RGBA{
+		R: 255 - uint8(dR),
+		G: 255 - uint8(dG),
+		B: 255 - uint8(dB),
+		A: 255,
+	}
+}
+
 func Average(cluster color.Palette) color.Color {
 	sumR := 0
 	sumG := 0

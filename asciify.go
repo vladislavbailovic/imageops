@@ -19,6 +19,95 @@ const (
 
 type AsciiPalette map[uint8]string
 
+type AsciiStringifier func(color.Palette) string
+
+func Intensity(c color.Color) uint8 {
+	r, g, b, _ := c.RGBA()
+	dR := float64(r) / float64(math.MaxUint16)
+	dG := float64(g) / float64(math.MaxUint16)
+	dB := float64(b) / float64(math.MaxUint16)
+	amount := (dR + dG + dB) / 3
+	return uint8(amount*10) * 10
+}
+
+func ConsolifyPlain() AsciiStringifier {
+	ascii := getAsciiPalette()
+	return func(p color.Palette) string {
+		c := Average(p)
+		i := Intensity(c)
+		return ascii[i]
+	}
+}
+
+func HtmlifyText() AsciiStringifier {
+	ascii := getAsciiPalette()
+	return func(p color.Palette) string {
+		c := Average(p)
+		i := Intensity(c)
+		x := ascii[i]
+		return fmt.Sprintf("<span style='color: %s'>%x</span>",
+			colorToHexString(c), x)
+	}
+}
+
+func HtmlifyBgText() AsciiStringifier {
+	ascii := getAsciiPalette()
+	return func(p color.Palette) string {
+		c := Average(p)
+		r := Inverse(c)
+		i := Intensity(c)
+		x := ascii[i]
+		return fmt.Sprintf(
+			"<span style='background: %s;color: %s'>%x</span>",
+			colorToHexString(c),
+			colorToHexString(r), x)
+	}
+}
+
+func HtmlifyBg() AsciiStringifier {
+	return func(p color.Palette) string {
+		c := Average(p)
+		return fmt.Sprintf(
+			"<span style='background: %s'> </span>",
+			colorToHexString(c))
+	}
+}
+
+// TODO: very similar to Pixelate
+func AsciifyWith(src image.Image, tileSize int,
+	stringify AsciiStringifier) string {
+	size := src.Bounds()
+	out := ""
+
+	for y := size.Min.Y; y < size.Max.Y; y += tileSize {
+		for x := size.Min.X; x < size.Max.X; x += tileSize {
+			// Figure out color
+			palette := make(color.Palette, 0,
+				tileSize*tileSize)
+			for i := 0; i < tileSize; i++ {
+				for j := 0; j < tileSize; j++ {
+					current := src.At(x+j, y+i)
+					palette = append(palette, current)
+				}
+			}
+			out += stringify(palette)
+		}
+		out += "\n"
+	}
+
+	return out
+}
+
+func colorToHexString(c color.Color) string {
+	r, g, b, a := c.RGBA()
+	res := 0 |
+		((r & 0xff) << 24) |
+		((g & 0xff) << 16) |
+		((b & 0xff) << 8) |
+		(a & 0xff)
+	return fmt.Sprintf("#%08x", res)
+}
+
 func getAsciiPalette() AsciiPalette {
 	point := fixed.Point26_6{fixed.I(7), fixed.I(13)}
 	bounds := image.Rect(0, 0, 28, 28)
@@ -67,74 +156,6 @@ func getAsciiPalette() AsciiPalette {
 		gray := uint8(amount*10) * 10
 		ranges[gray] = letter
 	}
-	ranges[0] = " "
 
 	return ranges
-}
-
-func Intensity(c color.Color) uint8 {
-	r, g, b, _ := c.RGBA()
-	dR := float64(r) / float64(math.MaxUint16)
-	dG := float64(g) / float64(math.MaxUint16)
-	dB := float64(b) / float64(math.MaxUint16)
-	amount := (dR + dG + dB) / 3
-	return uint8(amount*10) * 10
-}
-
-type AsciiStringifier func(color.Palette, AsciiPalette) string
-
-func AsciifyPlain(src image.Image, tileSize int) string {
-	consolify := func(p color.Palette, a AsciiPalette) string {
-		c := Average(p)
-		i := Intensity(c)
-		return a[i]
-	}
-	return AsciifyWith(src, tileSize, consolify)
-}
-
-func colorToHexString(c color.Color) string {
-	r, g, b, a := c.RGBA()
-	res := 0 |
-		((r & 0xff) << 24) |
-		((g & 0xff) << 16) |
-		((b & 0xff) << 8) |
-		(a & 0xff)
-	return fmt.Sprintf("#%08x", res)
-}
-
-func AsciifyHtml(src image.Image, tileSize int) string {
-	htmlify := func(p color.Palette, _ AsciiPalette) string {
-		c := Average(p)
-		return fmt.Sprintf("<span style='background: %s'> </span>",
-			colorToHexString(c))
-	}
-	return "<pre>" +
-		AsciifyWith(src, tileSize, htmlify) + "</pre>"
-}
-
-// TODO: very similar to Pixelate
-func AsciifyWith(src image.Image, tileSize int, stringify AsciiStringifier) string {
-	size := src.Bounds()
-	width := size.Max.X - size.Min.X
-	height := size.Max.Y - size.Min.Y
-	out := ""
-
-	ascii := getAsciiPalette()
-
-	for y := size.Min.Y; y < size.Max.Y; y += tileSize {
-		for x := size.Min.X; x < size.Max.X; x += tileSize {
-			// Figure out color
-			palette := make(color.Palette, 0, width*height)
-			for i := 0; i < tileSize; i++ {
-				for j := 0; j < tileSize; j++ {
-					current := src.At(x+j, y+i)
-					palette = append(palette, current)
-				}
-			}
-			out += stringify(palette, ascii)
-		}
-		out += "\n"
-	}
-
-	return out
 }
