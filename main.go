@@ -11,9 +11,9 @@ import (
 )
 
 func main() {
-	// extractPaletteAndRecolorize()
+	extractPaletteAndRecolorize()
 	// pixelateAndRecolorize()
-	pixelateAndAsciify()
+	// pixelateAndAsciify()
 }
 
 func pixelateAndAsciify() {
@@ -95,16 +95,8 @@ func extractPaletteAndRecolorize() {
 	}
 
 	size := img.Bounds()
-
 	width := size.Max.X - size.Min.X
 	height := size.Max.Y - size.Min.Y
-	samples := make([]color.Color, 0, width*height)
-	for i := 0; i < width*height; i++ {
-		y := i / width
-		x := i % width
-		point := img.At(x, y)
-		samples = append(samples, point)
-	}
 
 	// Initialize output surface
 	rec := image.NewNRGBA(size)
@@ -116,7 +108,7 @@ func extractPaletteAndRecolorize() {
 	}
 	defer recf.Close()
 
-	means := Extract(samples, 8)
+	means := ExtractFrom(img, 8)
 
 	for i := 0; i < width*height; i++ {
 		y := i / width

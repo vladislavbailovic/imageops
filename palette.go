@@ -1,14 +1,22 @@
 package main
 
 import (
+	"image"
 	"image/color"
 	"math"
 	"math/rand"
 	"time"
 )
 
-const ConvergeanceAttempts int = 10
+/// How many times we will attempt to recenter the
+/// k-means cluster centroids in attempt to discover
+/// all clusters before we give up
 const MaxRecenteringAttempts int = 250
+
+/// Once all the k-means clusters have been discovered,
+/// how many additional times we will recenter the
+/// centroids to have them converge to a decent value
+const ConvergeanceAttempts int = 10
 
 func Closest(point color.Color, palette color.Palette) int {
 	which := -1
@@ -48,6 +56,22 @@ func Average(cluster color.Palette) color.Color {
 	}
 }
 
+func ExtractFrom(img image.Image, K int) color.Palette {
+	size := img.Bounds()
+	width := size.Max.X - size.Min.X
+	height := size.Max.Y - size.Min.Y
+
+	samples := make([]color.Color, 0, width*height)
+	for i := 0; i < width*height; i++ {
+		y := i / width
+		x := i % width
+		point := img.At(x, y)
+		samples = append(samples, point)
+	}
+	return Extract(samples, K)
+}
+
+/// Extract color palette using k-means clustering
 func Extract(samples []color.Color, K int) color.Palette {
 	rand.Seed(time.Now().UnixNano())
 
